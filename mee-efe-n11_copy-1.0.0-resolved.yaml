@@ -1,0 +1,264 @@
+openapi: 3.0.3
+info:
+  title: Методы для работы с досками
+  description: Методы для создания/копирования доски
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/mee-efe/n11_copy/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: http://miro.com
+paths:
+  /projects/{projectId}/boards:
+    post:
+      tags:
+      - Boards
+      summary: Метод создания/копирования доски
+      description: Метод создает доску с нуля или копирует существующую с изменениме имени доски
+      parameters:
+      - name: projectId
+        in: path
+        description: идентификатор проекта
+        required: true
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        description: идемпотентный ключ
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/projectId_boards_body"
+        required: true
+      responses:
+        "200":
+          description: Доска создана
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200"
+        "201":
+          description: повтор по idempotency
+        "400":
+          description: Переданы некорректные параметры запроса
+        "401":
+          description: Пользователь не авторизован
+        "403":
+          description: Нет прав на создание доски в проекте
+        "404":
+          description: Проект не найден
+        "500":
+          description: Внутренняя ошибка сервера
+      security:
+      - bearerAuth: []
+  /projects/{projectId}/boards/{boardId}:
+    delete:
+      tags:
+      - Boards
+      summary: Метод удаления доски
+      description: Метод удаляет доску по идентификатору доски
+      parameters:
+      - name: projectId
+        in: path
+        description: идентификатор проекта
+        required: true
+        schema:
+          type: string
+      - name: boardId
+        in: path
+        description: идентификатор доски
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Доска создана
+        "401":
+          description: Пользователь не авторизован
+        "403":
+          description: Нет прав на удаление доски
+        "404":
+          description: Доска или проект не найдены
+        "500":
+          description: Внутренняя ошибка сервера
+      security:
+      - bearerAuth: []
+  /projects/{projectId}/boards/{boardId}/polygons:
+    get:
+      tags:
+      - Boards
+      summary: Получение многоугольников доски
+      description: "Метод возвращает список многоугольников, размещённых на доске"
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: polygonId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: sort
+        in: query
+        description: Поле для сортировки
+        required: false
+        schema:
+          type: string
+          enum:
+          - createdAt
+          - polygonId
+      - name: order
+        in: query
+        description: Направление сортировки
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200_1"
+        "401":
+          description: Пользователь не авторизован
+        "403":
+          description: Нет прав на запрос
+        "404":
+          description: Доска или проект не найдены
+        "500":
+          description: Внутренняя ошибка сервера
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    inline_response_200_1_polygons:
+      required:
+      - polygonId
+      - x
+      - "y"
+      type: object
+      properties:
+        polygonId:
+          type: string
+          format: uuid
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/inline_response_200_1_points"
+    projectsprojectIdboards_source:
+      required:
+      - access
+      - mode
+      type: object
+      properties:
+        access:
+          type: string
+          description: "Доступ к доске(anyone/team/private), заполняется при создании доски с нуля, при copyAccess = true значение копируется из доски источника"
+          enum:
+          - anyone
+          - team
+          - private
+        mode:
+          type: string
+          description: указывает создаем ли мы доску с нуля или берем за основу другую
+          enum:
+          - create
+          - copy
+        boardId:
+          type: string
+          description: "Идентификатор доски источника, заполняется при mode = copy"
+        copyAccess:
+          type: boolean
+          description: "Копирование настроек доступа, используется при mode = copy"
+        copyContent:
+          type: boolean
+          description: "Копировнаие наполнения доски, используется при mode = copy"
+      description: Источник копирования
+    inline_response_200_1:
+      required:
+      - polygons
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Общее количество полигонов на доске
+        limit:
+          type: integer
+          description: Количество элементов в ответе
+        offset:
+          type: integer
+          description: Смещение выборки
+        polygons:
+          type: array
+          items:
+            $ref: "#/components/schemas/inline_response_200_1_polygons"
+    inline_response_200:
+      required:
+      - boardId
+      - createdAt
+      - createdBy
+      - url
+      type: object
+      properties:
+        boardId:
+          type: string
+          description: Идентификатор созданной доски
+        createdBy:
+          type: string
+          description: "Идентификатор пользователя, который создал доску"
+        createdAt:
+          type: string
+          description: "Ддата и время создания доски, ISO8601"
+          format: date-time
+        url:
+          type: string
+          description: Ссылка на доску для пользователя
+    projectId_boards_body:
+      required:
+      - name
+      - source
+      type: object
+      properties:
+        name:
+          type: string
+          description: имя новой доски
+        source:
+          $ref: "#/components/schemas/projectsprojectIdboards_source"
+    inline_response_200_1_points:
+      type: object
+      properties:
+        x:
+          type: number
+          format: float
+        "y":
+          type: number
+          format: float
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
