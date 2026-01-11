@@ -1,7 +1,7 @@
-# API Documentation
+## API Documentation
 OpenAPI 3.0.3 specification.
 
-Алгоритм работы метода POST /projects/{projectId}/boards
+#**Алгоритм работы метода POST /projects/{projectId}/boards**
 
 1. Клиент вызывает метод создания/копирования доски с телом запроса и заголовком Idempotency-Key;
 
@@ -33,7 +33,7 @@ OpenAPI 3.0.3 specification.
 
 10. API возвращает успешный ответ 200 с данными созданной доски (идентификатор, URL, кто и когда создал).
 
-Алгоритм работы метода DELETE /projects/{projectId}/boards/{boardId}
+#**Алгоритм работы метода DELETE /projects/{projectId}/boards/{boardId}**
 
 1. Клиент вызывает метод удаления доски, передавая {projectId} и {boardId} в URL.
 
@@ -61,7 +61,7 @@ OpenAPI 3.0.3 specification.
 
 Примечание: повторный вызов метода для уже удалённой доски приводит к 404.
 
-Алгоритм работы метода GET /projects/{projectId}/boards/{boardId}/polygons
+#**Алгоритм работы метода GET /projects/{projectId}/boards/{boardId}/polygons**
 
 1. Клиент вызывает метод получения списка многоугольников доски, передавая {projectId}, {boardId} и опциональные query-параметры (limit, offset, polygonId, sort, order).
 
